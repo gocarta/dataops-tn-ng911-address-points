@@ -33,6 +33,7 @@ We need a way to securely and quickly geocode within a web app.
 
 ## preview links
 - You can query the data with SQL using [duckdb](https://shell.duckdb.org/#queries=v0,CREATE-TABLE-dataset-AS-SELECT-*-FROM-'s3%3A%2F%2Fgocarta%2Fpublic%2Fdata%2Ftn_ng911_address_points%2Fv1%2Fdata.parquet'~,Describe-dataset~,SELECT-State%2C-COUNT(*)-FROM-dataset-GROUP-BY-State~,SELECT-*-FROM-Dataset-WHERE-Add_Number-%3D-'1617'-AND-StNam_Full-%3D-'WILCOX-BLVD'-LIMIT-1~).
+- Here's a proof-of-concept demo of client-side geocoding with this dataset: https://gocarta.github.io/dataops-tn-ng911-address-points/
 
 ## support
 Post an issue [here](https://github.com/gocarta/dataops-tn-ng911-address-points/issues) or email the package author at DanielDufour@gocarta.org.
