@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Client-Side GeoCoding Proof of Concept</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+
+    #search {
+      width: 400px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .suggestions {
+      border: 1px solid #ccc;
+      width: 400px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .suggestion {
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .suggestion:hover {
+      background: #f0f0f0;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Proof of Concept for Client-Side Geocoding</h2>
+<h3><b>Source:</b> <a href="https://geodata.tn.gov/datasets/tnmap::tennessee-ng911-address-points/about">TN Next Generation 911 Address Points</a></h3>
+
+<input id="search" placeholder="Type an address (e.g. 1617 Wilcox Blvd)" />
+<div id="suggestions" class="suggestions"></div>
+
+<div id="result" class="result"></div>
+
+<script>
+  const CSV_URL = "https://gocarta.s3.us-east-2.amazonaws.com/public/data/tn_ng911_address_points/v1/data.csv";
+
+  let addresses = [];
+
+  function formatAddress(row) {
+    return `${row.Add_Number} ${row.StNam_Full}, TN ${row.Zip_Code}`;
+  }
+
+  function normalize(str) {
+    return str.toLowerCase();
+  }
+
+  // Load dataset
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      addresses = results.data;
+      console.log("Loaded", addresses.length, "addresses");
+    }
+  });
+
+  const input = document.getElementById("search");
+  const suggestionsDiv = document.getElementById("suggestions");
+  const resultDiv = document.getElementById("result");
+
+  input.addEventListener("input", function() {
+    const query = normalize(input.value.trim());
+
+    if (!query) {
+      suggestionsDiv.innerHTML = "";
+      return;
+    }
+
+    // basic substring search
+    const matches = [];
+
+    for (let i = 0; i < addresses.length; i++) {
+      const addr = formatAddress(addresses[i]);
+      if (normalize(addr).includes(query)) {
+        matches.push(addresses[i]);
+      }
+      if (matches.length >= 5) break;
+    }
+
+    renderSuggestions(matches);
+  });
+
+  function renderSuggestions(matches) {
+    suggestionsDiv.innerHTML = "";
+
+    matches.forEach(row => {
+      const div = document.createElement("div");
+      div.className = "suggestion";
+      div.textContent = formatAddress(row);
+
+      div.addEventListener("click", () => {
+        selectAddress(row);
+      });
+
+      suggestionsDiv.appendChild(div);
+    });
+  }
+
+  function selectAddress(row) {
+    const address = formatAddress(row);
+
+    input.value = address;
+    suggestionsDiv.innerHTML = "";
+
+    resultDiv.innerHTML = `
+      <strong>Selected:</strong> ${address}<br/>
+      <strong>Latitude:</strong> ${row.Latitude}<br/>
+      <strong>Longitude:</strong> ${row.Longitude}
+    `;
+  }
+</script>
+
+</body>
+</html>
